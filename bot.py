@@ -10,10 +10,9 @@ import cpuinfo
 from pyrogram import Client, filters
 from time import perf_counter
 
-
 # ------------------------------------------------------------
-owner = 1084116847
-version = "1.2"
+owner = 1084116847  # Write you Telegram id
+version = "1.2.1"
 # ------------------------------------------------------------
 api_id = 2860432
 api_hash = "2fde6ca0f8ae7bb58844457a239c7214"
@@ -21,7 +20,7 @@ app = Client("my_account", api_id=api_id, api_hash=api_hash)
 # ------------------------------------------------------------
 
 with app:
-    app.send_message(owner, f"Сервер запущен!\nВерсия: **{version}**")
+    app.send_message(owner, f"Server started!\nVersion: **{version}**")
 
 
 @app.on_message(filters.command(["start", "help"]) & filters.user(owner))
@@ -30,7 +29,7 @@ def help_menu(client, message):
 AdminPanel by A9FM
 Version: {version}
 ==========
-1. RAN/CPU/ROM → /info
+1. RAM/CPU/ROM → /info
 2. Bash Terminal → /sh (Команда)
 3. Start Bots → /bots
 4. Restart systemctl (**WARNING**) → /restart
@@ -142,22 +141,24 @@ async def bots(client, message):
             try:
                 start_botes = subprocess.Popen([f"sh {i}"], stdout=subprocess.PIPE, shell=True)
                 start_botes.daemon = True
-                text += f"✅ Файл {i} запущен!\n"
+                text += f"✅ File autostart {i} started!\n"
             except:
-                text += f"❌ Файл {i} не был запущен!\n"
+                text += f"❌ File autostart {i} not started!\n"
+    if text == "":
+        text = "File autostart not found..."
     await app.send_message(message.chat.id, text)
 
 
 @app.on_message(filters.command("restart") & filters.user(owner))
 async def restart(client, message):
-    text = "Отправлен запрос на перезапуск, ожидайте следующего сообщения (by systemctl)"
+    text = "Send command to server (by systemctl)"
     await app.send_message(message.chat.id, text)
     os.system(f"sh restart_daemon.sh")
 
 
 @app.on_message(filters.command("stop") & filters.user(owner))
 async def st_bots(client, message):
-    await app.send_message(message.chat.id, "⚠️  Перезапуск сервера...")
+    await app.send_message(message.chat.id, "⚠️  Restart server...")
     os.system("sudo reboot")
 
 
