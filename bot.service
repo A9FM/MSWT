@@ -3,7 +3,7 @@
 Description=Telegram bot
 After=network.target
 [Service]
-ExecStart=/usr/bash /home/a9fm/start-server.sh
+ExecStart=/usr/bash /home/a9fm/start-server.sh  # In start-server write "cd (you directory) && python3 bot.py"
 RestartSec=10
 Restart=always
 [Install]
