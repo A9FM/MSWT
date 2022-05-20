@@ -1,0 +1,10 @@
+# MSWT | Copy to /etc/systemd/system
+[Unit]
+Description=Telegram bot
+After=network.target
+[Service]
+ExecStart=/usr/bash /home/a9fm/start-server.sh
+RestartSec=10
+Restart=always
+[Install]
+WantedBy=multi-user.target
