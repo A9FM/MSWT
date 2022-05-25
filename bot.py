@@ -7,12 +7,13 @@ import subprocess
 import random
 import platform
 import cpuinfo
+import asyncio
 from pyrogram import Client, filters
 from time import perf_counter
 
 # ------------------------------------------------------------
 owner = 1084116847  # Write you Telegram id
-version = "1.2.1"
+version = "1.2.3"
 # ------------------------------------------------------------
 api_id = 2860432
 api_hash = "2fde6ca0f8ae7bb58844457a239c7214"
@@ -32,7 +33,7 @@ Version: {version}
 1. RAM/CPU/ROM → /info
 2. Bash Terminal → /sh (Команда)
 3. Start Bots → /bots
-4. Restart systemctl (**WARNING**) → /restart
+4. Restart systemctl → /restart
 5. Restart server (**WARNING**) → /stop
 ==========
 '''
@@ -77,11 +78,19 @@ def disk(client, message):
     except:
         os = "Unknown"
 
+    info.edit("Get Battery info...")
+
+    try:
+        battery = f"{int(psutil.sensors_battery().percent)}%"
+    except:
+        battery = f"Unknown"
+
     msg = f'''
 Disk: **{disk}**
 CPU: **{cpu}**
 RAM: **{ram}**
 OS: **{os}**
+Battery: **{battery}**
 Version: **{version}**
 '''
     info.edit(msg)
@@ -112,21 +121,39 @@ async def sh(client, message):
     else:
         stop_time = perf_counter()
         if stdout:
+            stdout_output = f"{stdout}"
             text += "<b>Output:</b>\n" f"<code>{stdout}</code>\n"
+        else:
+            stdout_output = ""
+
         if stderr:
+            stderr_output = f"{stderr}"
             text += "<b>Error:</b>\n" f"<code>{stderr}</code>\n"
+        else:
+            stderr_output = ""
+
         time = round(stop_time - start_time, 3) * 1000
         text += f"<b>Completed in {time} miliseconds with code {cmd_obj.returncode}</b> "
 
     try:
         await message.edit(text)
     except:
+        output = f"{stdout_output}\n\n{stderr_output}"
+        command = f"{cmd_text}"
+
         await message.edit("Result too much, send with document...")
+
         i = random.randint(1, 9999)
         with open(f"result{i}.txt", "w") as file:
-            file.write(text)
-        await app.send_document(message.chat.id, f"result{i}.txt", caption="Result")
-        await message.delete()
+            file.write(f"{output}")
+
+        try:
+            await app.send_document(message.chat.id, f"result{i}.txt", caption=f"<code>{command}</code>")
+            await message.delete()
+        except:
+            await app.send_document(message.chat.id, f"result{i}.txt", caption="Result")
+            await message.edit(f"<code>{command}</code>")
+
         os.remove(f"result{i}.txt")
 
     cmd_obj.kill()
@@ -144,6 +171,14 @@ async def bots(client, message):
                 text += f"✅ File autostart {i} started!\n"
             except:
                 text += f"❌ File autostart {i} not started!\n"
+        if re.compile("(-start.bat)").search(i):
+            try:
+                start_botes = subprocess.Popen([f"{i}"], stdout=subprocess.PIPE, shell=True)
+                start_botes.daemon = True
+                text += f"✅ File autostart {i} started!\n"
+            except:
+                text += f"❌ File autostart {i} not started!\n"
+
     if text == "":
         text = "File autostart not found..."
     await app.send_message(message.chat.id, text)
@@ -151,8 +186,7 @@ async def bots(client, message):
 
 @app.on_message(filters.command("restart") & filters.user(owner))
 async def restart(client, message):
-    text = "Send command to server (by systemctl)"
-    await app.send_message(message.chat.id, text)
+    await app.send_message(message.chat.id, "Send command to server (restart with systemctl)")
     os.system(f"sh restart_daemon.sh")
 
 
